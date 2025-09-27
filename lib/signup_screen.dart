@@ -11,9 +11,11 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController nameCtrl = TextEditingController();
+  final TextEditingController fullnameCtrl = TextEditingController();
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController passCtrl = TextEditingController();
+  final TextEditingController dobCtrl = TextEditingController();
+  final TextEditingController phoneCtrl = TextEditingController();
 
   bool isLoading = false;
 
@@ -27,9 +29,11 @@ class _SignupScreenState extends State<SignupScreen> {
         Uri.parse("http://10.0.2.2:5000/api/users/register"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
-          "name": nameCtrl.text.trim(),
+          "fullname": fullnameCtrl.text.trim(), // Sửa lại tên trường
           "email": emailCtrl.text.trim(),
           "password": passCtrl.text.trim(),
+          "dob": dobCtrl.text.trim(),
+          "phone": phoneCtrl.text.trim(),
         }),
       );
 
@@ -92,10 +96,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 24),
 
                 TextFormField(
-                  controller: nameCtrl,
+                  controller: fullnameCtrl,
                   decoration: InputDecoration(
-                    hintText: "Họ và tên",
-                    prefixIcon: const Icon(Icons.person_outline),
+                    hintText: "Họ tên đầy đủ",
+                    prefixIcon: const Icon(Icons.badge_outlined),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -104,7 +108,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
                   validator: (val) => val == null || val.isEmpty
-                      ? "Vui lòng nhập họ tên"
+                      ? "Vui lòng nhập họ tên đầy đủ"
                       : null,
                 ),
                 const SizedBox(height: 16),
@@ -141,6 +145,43 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: (val) => val == null || val.isEmpty
                       ? "Vui lòng nhập mật khẩu"
+                      : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: dobCtrl,
+                  decoration: InputDecoration(
+                    hintText: "Ngày sinh (YYYY-MM-DD)",
+                    prefixIcon: const Icon(Icons.cake_outlined),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (val) => val == null || val.isEmpty
+                      ? "Vui lòng nhập ngày sinh"
+                      : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: phoneCtrl,
+                  decoration: InputDecoration(
+                    hintText: "Số điện thoại",
+                    prefixIcon: const Icon(Icons.phone_outlined),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (val) => val == null || val.isEmpty
+                      ? "Vui lòng nhập số điện thoại"
                       : null,
                 ),
                 const SizedBox(height: 20),

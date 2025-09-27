@@ -1,3 +1,4 @@
+import 'package:app_courser/Courser/CourseDetailScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -49,6 +50,40 @@ class _HomeScreensState extends State<HomeScreens> {
         final data = json.decode(response.body);
         setState(() {
           courses = data is List ? data : [];
+          isLoading = false;
+        });
+      } else {
+        throw Exception("Failed to load courses");
+      }
+    } catch (e) {
+      print("Lỗi API: $e");
+      setState(() {
+        courses = [];
+        isLoading = false;
+      });
+    }
+  }
+
+  /// Get all courses sorted by rating
+  Future<void> fetchAllCoursesSorted() async {
+    setState(() {
+      isLoading = true;
+      selectedCategoryId = null; // Không chọn category nào
+    });
+    try {
+      final response = await http.get(
+        Uri.parse("http://10.0.2.2:5000/api/courses"),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List sortedCourses = [];
+        if (data is List) {
+          sortedCourses = List.from(data);
+          sortedCourses.sort((a, b) =>
+              ((b["rating"] ?? 0) as num).compareTo((a["rating"] ?? 0) as num));
+        }
+        setState(() {
+          courses = sortedCourses;
           isLoading = false;
         });
       } else {
@@ -163,11 +198,24 @@ class _HomeScreensState extends State<HomeScreens> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: categories.map((cat) {
-                      final String id = cat["_id"] ?? "";
-                      final bool isSelected = selectedCategoryId == id;
-                      return _buildCategoryChip(cat, isSelected);
-                    }).toList(),
+                    children: [
+                      // Chip "Tất cả"
+                      _buildCategoryChip(
+                        {"_id": "all", "name": "Tất cả"},
+                        selectedCategoryId == null,
+                        onTap: () {
+                          fetchAllCoursesSorted();
+                        },
+                      ),
+                      // Các chip category còn lại
+                      ...categories.map((cat) {
+                        final String id = cat["_id"] ?? "";
+                        final bool isSelected = selectedCategoryId == id;
+                        return _buildCategoryChip(cat, isSelected, onTap: () {
+                          fetchCoursesByCategory(id);
+                        });
+                      }).toList(),
+                    ],
                   ),
                 ),
 
@@ -191,6 +239,11 @@ class _HomeScreensState extends State<HomeScreens> {
                       title: course["title"] ?? "No title",
                       price: course["price"]?.toString() ?? "0",
                       category: course["category"]?["name"] ?? "Unknown",
+                      imageUrl: course["imageUrl"],
+                      rating: (course["rating"] as num?)
+                          ?.toDouble(), // truyền rating
+                      students: course["students"] as int?, // truyền students
+                      courseData: course,
                     );
                   }).toList(),
                 ),
@@ -229,11 +282,12 @@ class _HomeScreensState extends State<HomeScreens> {
     );
   }
 
-  Widget _buildCategoryChip(Map category, bool isSelected) {
+  Widget _buildCategoryChip(Map category, bool isSelected, {VoidCallback? onTap}) {
     return GestureDetector(
-      onTap: () {
-        fetchCoursesByCategory(category["_id"]);
-      },
+      onTap: onTap ??
+          () {
+            fetchCoursesByCategory(category["_id"]);
+          },
       child: Container(
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -256,104 +310,108 @@ class _HomeScreensState extends State<HomeScreens> {
     String? imageUrl,
     double? rating,
     int? students,
+    Map? courseData,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Ảnh hoặc màu nền
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(18),
-              topRight: Radius.circular(18),
+    return GestureDetector(
+      onTap: () {
+        if (courseData != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CourseDetailScreen(course: courseData),
             ),
-            child: Container(
-              height: 90,
-              width: double.infinity,
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
               color: Colors.black12,
-              child: imageUrl != null
-                  ? Image.network(imageUrl, fit: BoxFit.cover)
-                  : null,
+              blurRadius: 8,
+              offset: Offset(0, 2),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Category + bookmark
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      category,
-                      style: const TextStyle(
-                        color: Colors.deepOrange,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+              ),
+              child: Container(
+                height: 90,
+                width: double.infinity,
+                color: Colors.black12,
+                child: imageUrl != null
+                    ? Image.network(imageUrl, fit: BoxFit.cover)
+                    : null,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        category,
+                        style: const TextStyle(
+                          color: Colors.deepOrange,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                    Icon(Icons.bookmark_border, color: Colors.green),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // Title
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
+                      Icon(Icons.bookmark_border, color: Colors.green),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    Text(
-                      "$price/-",
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+                  const SizedBox(height: 6),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
                     ),
-                    const SizedBox(width: 8),
-                    if (rating != null)
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                          Text("$rating", style: const TextStyle(fontSize: 14)),
-                        ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(
+                        "$price/-",
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
-                    const SizedBox(width: 8),
-                    if (students != null)
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.person,
-                            color: Colors.grey,
-                            size: 16,
-                          ),
-                          Text(
-                            "$students",
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
+                      const SizedBox(width: 12),
+                      const Icon(Icons.star, color: Colors.amber, size: 18),
+                      Text(
+                        (rating ?? 4.2).toString(),
+                        style: const TextStyle(fontSize: 14),
                       ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 12),
+                      Text(
+                        "${students ?? 7830} Std",
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
