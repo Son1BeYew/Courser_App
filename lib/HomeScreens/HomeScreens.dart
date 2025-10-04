@@ -191,9 +191,22 @@ class _HomeScreensState extends State<HomeScreens> {
                       title: course["title"] ?? "No title",
                       price: course["price"]?.toString() ?? "0",
                       category: course["category"]?["name"] ?? "Unknown",
+                      // 👇 Ưu tiên đúng tên trường bạn lưu trên BE
+                      image:
+                          course["imageUrl"] // Cloudinary secure_url
+                          ??
+                          course["image"] ??
+                          course["thumbnail"],
+                      rating: (course["rating"] is num)
+                          ? (course["rating"] as num).toDouble()
+                          : null,
+                      students: course["students"] is int
+                          ? course["students"] as int
+                          : null,
                     );
                   }).toList(),
                 ),
+
             ],
           ),
         ),
@@ -253,7 +266,7 @@ class _HomeScreensState extends State<HomeScreens> {
     required String title,
     required String price,
     required String category,
-    String? imageUrl,
+    String? image,
     double? rating,
     int? students,
   }) {
@@ -279,8 +292,8 @@ class _HomeScreensState extends State<HomeScreens> {
               height: 90,
               width: double.infinity,
               color: Colors.black12,
-              child: imageUrl != null
-                  ? Image.network(imageUrl, fit: BoxFit.cover)
+              child: image != null
+                  ? Image.network(image, fit: BoxFit.cover)
                   : null,
             ),
           ),
