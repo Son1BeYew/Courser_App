@@ -126,10 +126,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  FloatingActionButton(
-                    backgroundColor: Colors.blue,
-                    onPressed: _nextPage,
-                    child: const Icon(Icons.arrow_forward),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, "/home");
+                    },
+                    child: Text("Bắt đầu"),
                   ),
                 ],
               ),

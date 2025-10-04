@@ -79,8 +79,11 @@ class _HomeScreensState extends State<HomeScreens> {
         List sortedCourses = [];
         if (data is List) {
           sortedCourses = List.from(data);
-          sortedCourses.sort((a, b) =>
-              ((b["rating"] ?? 0) as num).compareTo((a["rating"] ?? 0) as num));
+          sortedCourses.sort(
+            (a, b) => ((b["rating"] ?? 0) as num).compareTo(
+              (a["rating"] ?? 0) as num,
+            ),
+          );
         }
         setState(() {
           courses = sortedCourses;
@@ -211,9 +214,13 @@ class _HomeScreensState extends State<HomeScreens> {
                       ...categories.map((cat) {
                         final String id = cat["_id"] ?? "";
                         final bool isSelected = selectedCategoryId == id;
-                        return _buildCategoryChip(cat, isSelected, onTap: () {
-                          fetchCoursesByCategory(id);
-                        });
+                        return _buildCategoryChip(
+                          cat,
+                          isSelected,
+                          onTap: () {
+                            fetchCoursesByCategory(id);
+                          },
+                        );
                       }).toList(),
                     ],
                   ),
@@ -282,9 +289,14 @@ class _HomeScreensState extends State<HomeScreens> {
     );
   }
 
-  Widget _buildCategoryChip(Map category, bool isSelected, {VoidCallback? onTap}) {
+  Widget _buildCategoryChip(
+    Map category,
+    bool isSelected, {
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
-      onTap: onTap ??
+      onTap:
+          onTap ??
           () {
             fetchCoursesByCategory(category["_id"]);
           },
