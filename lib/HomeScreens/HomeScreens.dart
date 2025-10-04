@@ -35,7 +35,6 @@ class _HomeScreensState extends State<HomeScreens> {
     }
   }
 
-  /// Get courses by category
   Future<void> fetchCoursesByCategory(String categoryId) async {
     setState(() {
       isLoading = true;
