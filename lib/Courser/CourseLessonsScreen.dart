@@ -13,8 +13,9 @@ class CourseLessonsScreen extends StatelessWidget {
   });
 
   Future<List<Map<String, dynamic>>> fetchLessons() async {
+    // ⚠️ thay localhost bằng IP máy thật khi chạy trên thiết bị thật (VD: 192.168.1.5)
     final res = await http.get(
-      Uri.parse("http://10.0.2.2:5000/api/lessons?course=${course["_id"]}"),
+      Uri.parse("http://10.0.2.2/api/lessons?course=${course["_id"]}"),
     );
 
     if (res.statusCode == 200) {
@@ -63,27 +64,11 @@ class CourseLessonsScreen extends StatelessWidget {
                     enabled: isPurchased,
                     onTap: isPurchased
                         ? () {
-                            // Ẩn snackBar cũ rồi show cái mới có nút ✕
-                            ScaffoldMessenger.of(context)
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Mở bài học ${lesson["title"]}",
-                                  ),
-                                  duration: const Duration(seconds: 5),
-                                  action: SnackBarAction(
-                                    label: "✕",
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      // Ẩn snackbar khi bấm ✕
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).hideCurrentSnackBar();
-                                    },
-                                  ),
-                                ),
-                              );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Mở bài học ${lesson["title"]}"),
+                              ),
+                            );
                           }
                         : null,
                   ),

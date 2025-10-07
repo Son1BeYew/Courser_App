@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'App Courser',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: const OnboardingScreen(), // Đổi lại thành OnboardingScreen
+      home: const OnboardingScreen(),
       routes: {
         "/login": (context) => const LoginScreen(),
         "/signup": (context) => const SignupScreen(),
