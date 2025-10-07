@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,6 +35,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         String userName = data["user"]?["name"] ?? "Người dùng";
+        String token = data["token"] ?? "";
+        String role = data["user"]?["role"] ?? "hocsinh";
+
+        await AuthService.saveToken(token, role);
 
         Navigator.pushReplacementNamed(
           context,
