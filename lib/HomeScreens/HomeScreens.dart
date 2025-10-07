@@ -245,7 +245,9 @@ class _HomeScreensState extends State<HomeScreens> {
                       title: course["title"] ?? "No title",
                       price: course["price"]?.toString() ?? "0",
                       category: course["category"]?["name"] ?? "Unknown",
-                      imageUrl: course["imageUrl"],
+                      imageUrl: course["imageUrl"] // Cloudinary secure_url
+                          ?? course["image"] // fallback nếu ko có imageUrl
+                          ?? null, // nếu ko có thì để null
                       rating: (course["rating"] as num?)
                           ?.toDouble(), // truyền rating
                       students: course["students"] as int?, // truyền students

@@ -35,12 +35,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (course["imageUrl"] != null)
+            if (course["image"] != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
-                  course["imageUrl"],
-                  height: 180,
+                  course["image"],
+                  height: 195,
                   fit: BoxFit.cover,
                 ),
               )
