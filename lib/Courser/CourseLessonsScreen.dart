@@ -13,16 +13,26 @@ class CourseLessonsScreen extends StatelessWidget {
   });
 
   Future<List<Map<String, dynamic>>> fetchLessons() async {
-    // ⚠️ thay localhost bằng IP máy thật khi chạy trên thiết bị thật (VD: 192.168.1.5)
-    final res = await http.get(
-      Uri.parse("http://10.0.2.2/api/lessons?course=${course["_id"]}"),
-    );
+    try {
+      final res = await http.get(
+        Uri.parse("http://10.0.2.2:5000/api/lessons?course=${course["_id"]}"),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
 
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-      return List<Map<String, dynamic>>.from(data["items"]);
-    } else {
-      throw Exception("Lỗi tải bài học");
+      print("API Response Status: ${res.statusCode}");
+      print("API Response Body: ${res.body}");
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return List<Map<String, dynamic>>.from(data["items"]);
+      } else {
+        throw Exception("Lỗi tải bài học: ${res.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching lessons: $e");
+      throw Exception("Lỗi kết nối: $e");
     }
   }
 
