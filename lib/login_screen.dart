@@ -16,6 +16,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passCtrl = TextEditingController();
 
   bool isLoading = false;
+  bool isGoogleLoading = false;
+
+  Future<void> handleGoogleLogin() async {
+    setState(() => isGoogleLoading = true);
+
+    try {
+      final result = await AuthService.signInWithGoogle();
+
+      if (result["success"] == true) {
+        String userName = result["userName"] ?? "Người dùng";
+        if (mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            "/home",
+            arguments: {"userName": userName},
+          );
+        }
+      } else {
+        _showMessage(result["message"] ?? "Đăng nhập Google thất bại");
+      }
+    } catch (e) {
+      _showMessage("Lỗi: $e");
+    } finally {
+      if (mounted) {
+        setState(() => isGoogleLoading = false);
+      }
+    }
+  }
 
   Future<void> handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
@@ -187,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialButton(Icons.g_mobiledata, Colors.red),
+                    _buildGoogleButton(),
                     const SizedBox(width: 20),
                     _buildSocialButton(Icons.apple, Colors.black),
                   ],
@@ -221,6 +249,27 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleButton() {
+    return GestureDetector(
+      onTap: isGoogleLoading ? null : handleGoogleLogin,
+      child: Container(
+        height: 50,
+        width: 50,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black12),
+        ),
+        child: isGoogleLoading
+            ? const Padding(
+                padding: EdgeInsets.all(12),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.g_mobiledata, color: Colors.red, size: 28),
       ),
     );
   }

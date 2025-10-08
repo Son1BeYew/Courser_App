@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'login_screen.dart';
 import 'signup_screen.dart';
@@ -7,7 +8,8 @@ import 'Onboarding/onboarding_screen.dart';
 import 'HomeScreens/MyCoursesScreen.dart';
 import 'Menu/account_screen.dart';
 
-void main() {
+Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
