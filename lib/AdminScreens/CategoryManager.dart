@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/auth_service.dart';
 
 class CategoryManager extends StatefulWidget {
   const CategoryManager({super.key});
@@ -20,18 +21,38 @@ class _CategoryManagerState extends State<CategoryManager> {
   }
 
   Future<void> fetchCategories() async {
-    final res = await http.get(
-      Uri.parse("http://10.0.2.2:5000/api/categories"),
-    );
-    if (res.statusCode == 200) {
-      setState(() => categories = json.decode(res.body));
+    try {
+      final res = await http.get(
+        Uri.parse("http://10.0.2.2:5000/api/categories"),
+      );
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        setState(() {
+          if (data is List) {
+            categories = data;
+          } else if (data is Map && data.containsKey('categories')) {
+            categories = data['categories'];
+          } else if (data is Map && data.containsKey('data')) {
+            categories = data['data'];
+          } else {
+            categories = [];
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Lỗi tải danh mục: $e")),
+        );
+      }
     }
   }
 
   Future<void> createCategory() async {
+    final headers = await AuthService.getAuthHeaders();
     final res = await http.post(
       Uri.parse("http://10.0.2.2:5000/api/categories"),
-      headers: {"Content-Type": "application/json"},
+      headers: headers,
       body: json.encode({"name": nameCtrl.text}),
     );
     if (res.statusCode == 201) {
@@ -41,9 +62,10 @@ class _CategoryManagerState extends State<CategoryManager> {
   }
 
   Future<void> updateCategory(String id) async {
+    final headers = await AuthService.getAuthHeaders();
     final res = await http.put(
       Uri.parse("http://10.0.2.2:5000/api/categories/$id"),
-      headers: {"Content-Type": "application/json"},
+      headers: headers,
       body: json.encode({"name": nameCtrl.text}),
     );
     if (res.statusCode == 200) {
@@ -53,7 +75,11 @@ class _CategoryManagerState extends State<CategoryManager> {
   }
 
   Future<void> deleteCategory(String id) async {
-    await http.delete(Uri.parse("http://10.0.2.2:5000/api/categories/$id"));
+    final headers = await AuthService.getAuthHeaders();
+    await http.delete(
+      Uri.parse("http://10.0.2.2:5000/api/categories/$id"),
+      headers: headers,
+    );
     fetchCategories();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../AdminScreens/AdminDashboard.dart'; // 👉 nhớ import dashboard
+import '../AdminScreens/AdminDashboard.dart';
+import '../services/auth_service.dart';
 
 class User {
   final String name;
@@ -17,8 +18,26 @@ class User {
   }
 }
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  String? userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final role = await AuthService.getRole();
+    setState(() => userRole = role);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,22 +60,23 @@ class AccountScreen extends StatelessWidget {
             const Text('user@example.com'),
             const SizedBox(height: 24),
 
-            // ✅ Nút quản trị admin (thêm mới)
-            ListTile(
-              leading: const Icon(
-                Icons.admin_panel_settings,
-                color: Colors.deepPurple,
+            // ✅ Nút quản trị admin (chỉ hiển thị cho admin)
+            if (userRole == 'admin')
+              ListTile(
+                leading: const Icon(
+                  Icons.admin_panel_settings,
+                  color: Colors.deepPurple,
+                ),
+                title: const Text('Trang quản trị Admin'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminDashboard()),
+                  );
+                },
               ),
-              title: const Text('Trang quản trị Admin'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdminDashboard()),
-                );
-              },
-            ),
 
-            const Divider(),
+            if (userRole == 'admin') const Divider(),
 
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.blueGrey),
@@ -69,7 +89,8 @@ class AccountScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: const Text('Đăng xuất'),
-              onTap: () {
+              onTap: () async {
+                await AuthService.clearToken();
                 Navigator.pushReplacementNamed(context, '/login');
               },
             ),
